@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/categories.ts","./src/db.ts","./src/main.tsx","./src/supabaseClient.ts","./src/sync.ts","./src/types.ts","./src/vite-env.d.ts","./src/components/ExpenseForm.tsx","./src/components/Login.tsx","./src/components/MovementList.tsx"],"version":"5.9.3"}
