@@ -1,9 +1,11 @@
 // Categorías por defecto, agrupadas a partir de las ~200 variantes sueltas
 // que aparecían en la planilla original (se consolidaron duplicados y
 // gastos puntuales quedan como "Detalle" dentro de una categoría general).
-export const DEFAULT_CATEGORIES: string[] = [
+// Orden: alfabético (con "Sin categoría" incluida en su lugar alfabético).
+const CATEGORIAS_SIN_ORDENAR: string[] = [
   'Supermercado',
   'Almacén / Verdulería / Carnicería',
+  'Panadería',
   'Restaurantes / Delivery',
   'Cafetería',
   'Auto / Nafta / Cochera',
@@ -25,9 +27,14 @@ export const DEFAULT_CATEGORIES: string[] = [
   'Sueldo',
   'Rendimientos / Inversiones',
   'Devoluciones / Reintegros',
+  'Préstamos Inés',
   'Otros',
   'Sin categoría',
 ]
+
+export const DEFAULT_CATEGORIES: string[] = [...CATEGORIAS_SIN_ORDENAR].sort((a, b) =>
+  a.localeCompare(b, 'es', { sensitivity: 'base' })
+)
 
 // Palabras clave (sin tildes, minúsculas) para clasificar automáticamente un
 // texto libre en una de las categorías de arriba. Se usa tanto para la carga
@@ -36,13 +43,14 @@ export const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Supermercado': ['supermercado', 'super', 'coto', 'carrefour', 'dia', 'jumbo', 'disco', 'vea', 'changuito'],
   'Almacén / Verdulería / Carnicería': [
     'almacen', 'verduleria', 'verduras', 'carniceria', 'carnicero', 'carne', 'pollo', 'fiambreria',
-    'pescaderia', 'polleria', 'panaderia', 'rotiseria', 'dietetica', 'granja', 'huevos',
+    'pescaderia', 'polleria', 'rotiseria', 'dietetica', 'granja', 'huevos',
   ],
+  'Panadería': ['panaderia', 'panadero', 'facturas', 'pan', 'medialunas'],
   'Restaurantes / Delivery': [
     'restaurante', 'restaurant', 'delivery', 'pedidos ya', 'rappi', 'comida', 'almuerzo',
     'cena', 'pizza', 'sushi', 'hamburguesa', 'parrilla', 'bar', 'bares',
   ],
-  'Cafetería': ['cafe', 'cafeteria', 'capuccino', 'medialuna', 'facturas'],
+  'Cafetería': ['cafe', 'cafeteria', 'capuccino', 'medialuna'],
   'Auto / Nafta / Cochera': ['nafta', 'combustible', 'ypf', 'shell', 'axion', 'cochera', 'estacionamiento', 'peaje', 'lavadero', 'gomeria', 'service auto'],
   'Transporte (Uber/Taxi/SUBE)': ['uber', 'taxi', 'cabify', 'sube', 'colectivo', 'subte', 'tren'],
   'Servicios (luz, gas, agua, internet)': ['edenor', 'naturgy', 'aysa', 'luz', 'gas', 'agua', 'internet', 'wifi', 'fibertel', 'telecentro'],
@@ -62,4 +70,5 @@ export const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Sueldo': ['sueldo', 'salario', 'aguinaldo'],
   'Rendimientos / Inversiones': ['rendimiento', 'inversion', 'plazo fijo', 'dolar', 'dolares', 'cripto'],
   'Devoluciones / Reintegros': ['devolucion', 'reintegro'],
+  'Préstamos Inés': ['prestamo ines', 'prestamos ines', 'prestamo a ines', 'prestamo caro'],
 }

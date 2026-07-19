@@ -25,7 +25,7 @@ export default function App() {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  /// Estado de conexión, para mostrar el indicador y no depender solo del sync loop
+  // Estado de conexión, para mostrar el indicador y no depender solo del sync loop
   useEffect(() => {
     const on = () => setOnline(true)
     const off = () => setOnline(false)
