@@ -1,5 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import { db } from '../db'
+import { borrarMovimiento } from '../sync'
 import type { Household } from '../types'
 
 interface Props {
@@ -9,6 +11,8 @@ interface Props {
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 
 export function MovementList({ household }: Props) {
+  const [borrando, setBorrando] = useState<string | null>(null)
+
   // useLiveQuery re-renderiza automáticamente cuando cambia IndexedDB
   // (ya sea por una carga local nueva o por datos que trajo el sync).
   const movimientos = useLiveQuery(
@@ -22,6 +26,13 @@ export function MovementList({ household }: Props) {
   )
 
   if (!movimientos) return <p>Cargando...</p>
+
+  async function handleBorrar(id: string, resumen: string) {
+    if (!window.confirm(`¿Borrar "${resumen}"? Esta acción no se puede deshacer.`)) return
+    setBorrando(id)
+    await borrarMovimiento(id, household.id)
+    setBorrando(null)
+  }
 
   // Saldo corriente: arranca en el saldo inicial configurado y va sumando/restando
   // en orden cronológico (empate por updated_at para mantener orden estable).
@@ -78,6 +89,15 @@ export function MovementList({ household }: Props) {
                   <span className="fecha">{m.fecha}</span>
                   {!m.synced && <span className="pending" title="Pendiente de sincronizar">⏳</span>}
                 </div>
+                <button
+                  type="button"
+                  className="delete-btn"
+                  title="Borrar movimiento"
+                  disabled={borrando === m.id}
+                  onClick={() => handleBorrar(m.id, `${m.categoria} - ${money.format(m.monto)}`)}
+                >
+                  {borrando === m.id ? '…' : '🗑'}
+                </button>
               </div>
             ))}
           </div>

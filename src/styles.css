@@ -172,11 +172,13 @@ header h1 { font-size: 1.3rem; margin: 0; }
 
 .movement-row {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid #1e293b;
 }
-.movement-main { display: flex; flex-direction: column; gap: 2px; }
+.movement-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .badge {
   font-size: 0.75rem;
   font-weight: 600;
@@ -190,5 +192,18 @@ header h1 { font-size: 1.3rem; margin: 0; }
 .monto.ingreso { color: #86efac; }
 .fecha { font-size: 0.7rem; color: #64748b; }
 .pending { font-size: 0.7rem; }
+
+.delete-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 1rem;
+  padding: 6px 4px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.delete-btn:active { background: #7c2d12; color: #fca5a5; }
+.delete-btn:disabled { opacity: 0.5; }
 
 .loading { text-align: center; margin-top: 40vh; color: #94a3b8; }

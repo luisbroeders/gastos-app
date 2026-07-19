@@ -61,6 +61,19 @@ export async function runSync(householdId: string) {
   }
 }
 
+/**
+ * Borra (soft-delete) un movimiento cargado mal. No se elimina físicamente:
+ * se marca `deleted = 1` y se deja `synced = 0` para que el próximo sync lo
+ * suba y desaparezca también del lado del otro usuario. Funciona offline
+ * igual que una carga nueva (se sincroniza cuando vuelve la conexión).
+ */
+export async function borrarMovimiento(id: string, householdId: string) {
+  const actual = await db.movimientos.get(id)
+  if (!actual) return
+  await db.movimientos.put({ ...actual, deleted: 1, updated_at: new Date().toISOString(), synced: 0 })
+  runSync(householdId)
+}
+
 /** Arranca sincronización periódica + al reconectar. Devuelve función de limpieza. */
 export function startSyncLoop(householdId: string, intervalMs = 30_000) {
   const tick = () => runSync(householdId)
