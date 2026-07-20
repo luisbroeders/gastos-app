@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabaseClient'
 import { Login } from './components/Login'
 import { ExpenseForm } from './components/ExpenseForm'
 import { MovementList } from './components/MovementList'
+import { CategoriasAdmin } from './components/CategoriasAdmin'
 import { startSyncLoop } from './sync'
 import { DEFAULT_CATEGORIES } from './categories'
-import type { Household, Profile } from './types'
+import { db } from './db'
+import type { Household, Profile, Categoria } from './types'
 
 const HOUSEHOLD_CACHE_KEY = 'cached_household'
 const PROFILE_CACHE_KEY = 'cached_profile'
+
+type Tab = 'movimientos' | 'dashboard'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -17,6 +22,7 @@ export default function App() {
   const [household, setHousehold] = useState<Household | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<Tab>('movimientos')
 
   // Sesión de Supabase Auth
   useEffect(() => {
@@ -92,6 +98,25 @@ export default function App() {
     return stop
   }, [household?.id])
 
+  // Nombres de categorías activas, en vivo desde la base local (se administran
+  // desde el Dashboard). Si todavía no llegó nada de Supabase (primer uso sin
+  // conexión), mostramos la lista por defecto como respaldo para no bloquear la carga.
+  const categoriasDB = useLiveQuery(
+    () =>
+      household
+        ? db.categorias
+            .where('household_id')
+            .equals(household.id)
+            .and((c) => c.deleted === 0)
+            .toArray()
+        : Promise.resolve<Categoria[]>([]),
+    [household?.id]
+  )
+  const nombresCategorias =
+    categoriasDB && categoriasDB.length > 0
+      ? categoriasDB.map((c) => c.nombre).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
+      : DEFAULT_CATEGORIES
+
   if (!session) return <Login />
   if (loading || !profile || !household) return <p className="loading">Cargando...</p>
 
@@ -109,14 +134,28 @@ export default function App() {
         </div>
       </header>
 
-      <ExpenseForm
-        householdId={household.id}
-        userId={profile.id}
-        userName={profile.display_name}
-        categorias={DEFAULT_CATEGORIES}
-      />
+      <nav className="tabs">
+        <button className={tab === 'movimientos' ? 'active' : ''} onClick={() => setTab('movimientos')}>
+          Movimientos
+        </button>
+        <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
+          Dashboard
+        </button>
+      </nav>
 
-      <MovementList household={household} />
+      {tab === 'movimientos' ? (
+        <>
+          <ExpenseForm
+            householdId={household.id}
+            userId={profile.id}
+            userName={profile.display_name}
+            categorias={nombresCategorias}
+          />
+          <MovementList household={household} />
+        </>
+      ) : (
+        <CategoriasAdmin householdId={household.id} />
+      )}
     </div>
   )
 }

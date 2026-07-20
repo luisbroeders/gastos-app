@@ -29,3 +29,12 @@ export interface Profile {
   household_id: string
   display_name: string
 }
+
+export interface Categoria {
+  id: string // uuid, generado en el cliente
+  household_id: string
+  nombre: string
+  updated_at: string
+  deleted: 0 | 1
+  synced: 0 | 1 // solo local
+}

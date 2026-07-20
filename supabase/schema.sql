@@ -39,6 +39,18 @@ create table if not exists movimientos (
 create index if not exists idx_movimientos_household on movimientos(household_id);
 create index if not exists idx_movimientos_updated_at on movimientos(updated_at);
 
+-- Categorías administrables desde el Dashboard (ABM)
+create table if not exists categorias (
+  id uuid primary key,
+  household_id uuid not null references households(id),
+  nombre text not null,
+  updated_at timestamptz not null default now(),
+  deleted smallint not null default 0
+);
+
+create index if not exists idx_categorias_household on categorias(household_id);
+create index if not exists idx_categorias_updated_at on categorias(updated_at);
+
 -- =========================================================
 -- Row Level Security: cada usuario solo ve datos de su household
 -- =========================================================
@@ -72,6 +84,15 @@ create policy "insert movimientos same household" on movimientos
   for insert with check (household_id = get_my_household());
 
 create policy "update movimientos same household" on movimientos
+  for update using (household_id = get_my_household());
+
+create policy "select categorias same household" on categorias
+  for select using (household_id = get_my_household());
+
+create policy "insert categorias same household" on categorias
+  for insert with check (household_id = get_my_household());
+
+create policy "update categorias same household" on categorias
   for update using (household_id = get_my_household());
 
 -- =========================================================

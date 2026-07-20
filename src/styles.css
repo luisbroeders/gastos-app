@@ -207,3 +207,81 @@ header h1 { font-size: 1.3rem; margin: 0; }
 .delete-btn:disabled { opacity: 0.5; }
 
 .loading { text-align: center; margin-top: 40vh; color: #94a3b8; }
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  background: #1e293b;
+  padding: 4px;
+  border-radius: 10px;
+}
+.tabs button {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.tabs button.active { background: #6366f1; color: white; }
+
+.categorias-admin h2 { margin: 0 0 4px; font-size: 1.1rem; }
+.categorias-hint { color: #64748b; font-size: 0.8rem; margin: 0 0 14px; }
+
+.categoria-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.categoria-form input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+.categoria-form button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #6366f1;
+  color: white;
+  font-weight: 600;
+}
+.categoria-form button:disabled { opacity: 0.5; }
+
+.categorias-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.categoria-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #1e293b;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+.categoria-row input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.categoria-nombre { font-size: 0.9rem; }
+.categoria-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.categoria-actions button {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: none;
+  background: #6366f1;
+  color: white;
+  font-size: 0.8rem;
+}
+.categoria-actions button.secondary { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+.categoria-actions button.delete-btn { background: transparent; color: #fca5a5; font-size: 1rem; padding: 6px; }
