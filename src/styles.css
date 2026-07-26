@@ -207,6 +207,7 @@ header h1 { font-size: 1.3rem; margin: 0; }
 .delete-btn:disabled { opacity: 0.5; }
 
 .loading { text-align: center; margin-top: 40vh; color: #94a3b8; }
+.loading-inline { text-align: center; color: #94a3b8; padding: 40px 0; }
 
 .tabs {
   display: flex;
@@ -285,3 +286,59 @@ header h1 { font-size: 1.3rem; margin: 0; }
 }
 .categoria-actions button.secondary { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
 .categoria-actions button.delete-btn { background: transparent; color: #fca5a5; font-size: 1rem; padding: 6px; }
+
+.chart-section h2 { margin: 0 0 12px; font-size: 1.1rem; }
+
+.chart-filter {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.chart-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.chart-filter-actions { display: flex; gap: 6px; }
+.chart-filter-actions button {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+.chart-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.chart-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+.chart-totales {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+.chart-totales > div { display: flex; flex-direction: column; gap: 2px; }
+.chart-totales span { font-size: 0.72rem; color: #94a3b8; }
+.chart-totales strong { font-size: 1rem; }
+.chart-totales strong.ingreso { color: #86efac; }
+.chart-totales strong.gasto { color: #fca5a5; }

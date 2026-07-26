@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabaseClient'
@@ -6,6 +6,9 @@ import { Login } from './components/Login'
 import { ExpenseForm } from './components/ExpenseForm'
 import { MovementList } from './components/MovementList'
 import { CategoriasAdmin } from './components/CategoriasAdmin'
+const IngresosVsGastosChart = lazy(() =>
+  import('./components/IngresosVsGastosChart').then((m) => ({ default: m.IngresosVsGastosChart }))
+)
 import { startSyncLoop } from './sync'
 import { DEFAULT_CATEGORIES } from './categories'
 import { db } from './db'
@@ -14,7 +17,7 @@ import type { Household, Profile, Categoria } from './types'
 const HOUSEHOLD_CACHE_KEY = 'cached_household'
 const PROFILE_CACHE_KEY = 'cached_profile'
 
-type Tab = 'movimientos' | 'dashboard'
+type Tab = 'movimientos' | 'graficos' | 'dashboard'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -138,12 +141,15 @@ export default function App() {
         <button className={tab === 'movimientos' ? 'active' : ''} onClick={() => setTab('movimientos')}>
           Movimientos
         </button>
+        <button className={tab === 'graficos' ? 'active' : ''} onClick={() => setTab('graficos')}>
+          Gráficos
+        </button>
         <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
           Dashboard
         </button>
       </nav>
 
-      {tab === 'movimientos' ? (
+      {tab === 'movimientos' && (
         <>
           <ExpenseForm
             householdId={household.id}
@@ -153,9 +159,15 @@ export default function App() {
           />
           <MovementList household={household} />
         </>
-      ) : (
-        <CategoriasAdmin householdId={household.id} />
       )}
+
+      {tab === 'graficos' && (
+        <Suspense fallback={<p className="loading-inline">Cargando gráfico...</p>}>
+          <IngresosVsGastosChart householdId={household.id} />
+        </Suspense>
+      )}
+
+      {tab === 'dashboard' && <CategoriasAdmin householdId={household.id} />}
     </div>
   )
 }
