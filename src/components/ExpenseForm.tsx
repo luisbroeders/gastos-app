@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Mic, Square, ArrowDownCircle, ArrowUpCircle, Send } from 'lucide-react'
 import { db } from '../db'
 import { runSync } from '../sync'
 import { DEFAULT_CATEGORIES } from '../categories'
@@ -97,7 +98,8 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
             className={listening ? 'mic-btn listening' : 'mic-btn'}
             onClick={toggleVoice}
           >
-            {listening ? '⏹ Escuchando...' : '🎤 Cargar por voz'}
+            {listening ? <Square size={17} className="pulse" /> : <Mic size={17} />}
+            {listening ? 'Escuchando...' : 'Cargar por voz'}
           </button>
           {ultimoTranscript && <p className="transcript-preview">"{ultimoTranscript}"</p>}
           {voiceError && <p className="error">{voiceError}</p>}
@@ -110,6 +112,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
           className={tipo === 'gasto' ? 'active gasto' : 'gasto'}
           onClick={() => setTipo('gasto')}
         >
+          <ArrowDownCircle size={16} />
           Gasto
         </button>
         <button
@@ -117,6 +120,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
           className={tipo === 'ingreso' ? 'active ingreso' : 'ingreso'}
           onClick={() => setTipo('ingreso')}
         >
+          <ArrowUpCircle size={16} />
           Ingreso
         </button>
       </div>
@@ -168,7 +172,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
       </label>
 
       <button type="submit" className="submit-btn" disabled={saving}>
-        {saving ? 'Guardando...' : 'Registrar'}
+        {saving ? 'Guardando...' : (<><Send size={16} /> Registrar</>)}
       </button>
       {savedMsg && <p className="saved-msg">{savedMsg}</p>}
     </form>

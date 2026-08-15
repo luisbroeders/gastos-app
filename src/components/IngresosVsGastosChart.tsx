@@ -128,21 +128,21 @@ export function IngresosVsGastosChart({ householdId }: Props) {
 
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={datosPorMes} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="mesLabel" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#232c42" />
+              <XAxis dataKey="mesLabel" tick={{ fill: '#8792a6', fontSize: 12 }} />
               <YAxis
-                tick={{ fill: '#94a3b8', fontSize: 11 }}
+                tick={{ fill: '#8792a6', fontSize: 11 }}
                 tickFormatter={(v) => money.format(Number(v))}
                 width={64}
               />
               <Tooltip
                 formatter={(value: number) => money.format(value)}
-                contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                labelStyle={{ color: '#e2e8f0' }}
+                contentStyle={{ background: '#131a2c', border: '1px solid #232c42', borderRadius: 10 }}
+                labelStyle={{ color: '#edf1f7' }}
               />
               <Legend />
-              <Bar dataKey="ingreso" name="Ingresos" fill="#4ade80" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="gasto" name="Gastos" fill="#f87171" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="ingreso" name="Ingresos" fill="#2fd98a" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="gasto" name="Gastos" fill="#ff6b81" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </>

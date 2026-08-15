@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { Trash2 } from 'lucide-react'
 import { db } from '../db'
 import { borrarMovimiento } from '../sync'
 import type { Household } from '../types'
@@ -34,21 +35,15 @@ export function MovementList({ household }: Props) {
     setBorrando(null)
   }
 
-  // Saldo corriente: arranca en el saldo inicial configurado y va sumando/restando
-  // en orden cronológico (empate por updated_at para mantener orden estable).
+  // Agrupamos por mes solo para los totales de cada grupo (el saldo corriente
+  // ahora se muestra arriba de todo, en el componente SaldoActual).
   const ordenados = [...movimientos].sort((a, b) => {
     if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha)
     return a.updated_at.localeCompare(b.updated_at)
   })
 
-  let saldo = household.saldo_inicial
-  const conSaldo = ordenados.map((m) => {
-    saldo += m.tipo === 'ingreso' ? m.monto : -m.monto
-    return { ...m, saldoAcumulado: saldo }
-  })
-
-  const grupos = new Map<string, typeof conSaldo>()
-  for (const m of conSaldo) {
+  const grupos = new Map<string, typeof ordenados>()
+  for (const m of ordenados) {
     const mes = m.fecha.slice(0, 7) // YYYY-MM
     if (!grupos.has(mes)) grupos.set(mes, [])
     grupos.get(mes)!.push(m)
@@ -57,11 +52,6 @@ export function MovementList({ household }: Props) {
 
   return (
     <div className="movement-list">
-      <div className="saldo-actual">
-        <span>Saldo actual</span>
-        <strong>{money.format(saldo)}</strong>
-      </div>
-
       {meses.map((mes) => {
         const items = grupos.get(mes)!.slice().reverse()
         const totalGastos = items.filter((i) => i.tipo === 'gasto').reduce((s, i) => s + i.monto, 0)
@@ -77,6 +67,7 @@ export function MovementList({ household }: Props) {
             </div>
             {items.map((m) => (
               <div key={m.id} className="movement-row">
+                <div className={`movement-icon ${m.tipo}`}>{m.categoria.trim().charAt(0).toUpperCase() || '?'}</div>
                 <div className="movement-main">
                   <span className={`badge ${m.tipo}`}>{m.categoria}</span>
                   <span className="detalle">{m.detalle}</span>
@@ -96,7 +87,7 @@ export function MovementList({ household }: Props) {
                   disabled={borrando === m.id}
                   onClick={() => handleBorrar(m.id, `${m.categoria} - ${money.format(m.monto)}`)}
                 >
-                  {borrando === m.id ? '…' : '🗑'}
+                  {borrando === m.id ? '…' : <Trash2 size={15} />}
                 </button>
               </div>
             ))}

@@ -1,10 +1,12 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Session } from '@supabase/supabase-js'
+import { Receipt, BarChart3, LayoutGrid, LogOut } from 'lucide-react'
 import { supabase } from './supabaseClient'
 import { Login } from './components/Login'
 import { ExpenseForm } from './components/ExpenseForm'
 import { MovementList } from './components/MovementList'
+import { SaldoActual } from './components/SaldoActual'
 import { CategoriasAdmin } from './components/CategoriasAdmin'
 const IngresosVsGastosChart = lazy(() =>
   import('./components/IngresosVsGastosChart').then((m) => ({ default: m.IngresosVsGastosChart }))
@@ -129,28 +131,18 @@ export default function App() {
         <h1>Gastos Familia</h1>
         <div className="header-right">
           <span className={`online-badge ${online ? 'online' : 'offline'}`}>
+            <span className="dot" />
             {online ? 'En línea' : 'Sin conexión'}
           </span>
-          <button className="logout" onClick={() => supabase.auth.signOut()}>
-            Salir
+          <button className="icon-btn" title="Salir" onClick={() => supabase.auth.signOut()}>
+            <LogOut size={16} />
           </button>
         </div>
       </header>
 
-      <nav className="tabs">
-        <button className={tab === 'movimientos' ? 'active' : ''} onClick={() => setTab('movimientos')}>
-          Movimientos
-        </button>
-        <button className={tab === 'graficos' ? 'active' : ''} onClick={() => setTab('graficos')}>
-          Gráficos
-        </button>
-        <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
-          Dashboard
-        </button>
-      </nav>
-
       {tab === 'movimientos' && (
         <>
+          <SaldoActual household={household} />
           <ExpenseForm
             householdId={household.id}
             userId={profile.id}
@@ -168,6 +160,23 @@ export default function App() {
       )}
 
       {tab === 'dashboard' && <CategoriasAdmin householdId={household.id} />}
+
+      <nav className="bottom-nav">
+        <div className="bottom-nav-inner">
+          <button className={tab === 'movimientos' ? 'active' : ''} onClick={() => setTab('movimientos')}>
+            <Receipt size={20} />
+            Movimientos
+          </button>
+          <button className={tab === 'graficos' ? 'active' : ''} onClick={() => setTab('graficos')}>
+            <BarChart3 size={20} />
+            Gráficos
+          </button>
+          <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
+            <LayoutGrid size={20} />
+            Dashboard
+          </button>
+        </div>
+      </nav>
     </div>
   )
 }

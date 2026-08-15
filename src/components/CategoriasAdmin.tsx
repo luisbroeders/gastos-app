@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { Plus, Pencil, Trash2, Check, X } from 'lucide-react'
 import { db } from '../db'
 import { guardarCategoria, borrarCategoria } from '../sync'
 import type { Categoria } from '../types'
@@ -94,6 +95,7 @@ export function CategoriasAdmin({ householdId }: Props) {
           onChange={(e) => setNombreNueva(e.target.value)}
         />
         <button type="submit" disabled={guardando || !nombreNueva.trim()}>
+          <Plus size={16} />
           Agregar
         </button>
       </form>
@@ -116,11 +118,11 @@ export function CategoriasAdmin({ householdId }: Props) {
                     autoFocus
                   />
                   <div className="categoria-actions">
-                    <button type="button" onClick={() => handleGuardarEdicion(c)}>
-                      Guardar
+                    <button type="button" className="primary" title="Guardar" onClick={() => handleGuardarEdicion(c)}>
+                      <Check size={15} />
                     </button>
-                    <button type="button" className="secondary" onClick={() => setEditandoId(null)}>
-                      Cancelar
+                    <button type="button" title="Cancelar" onClick={() => setEditandoId(null)}>
+                      <X size={15} />
                     </button>
                   </div>
                 </>
@@ -131,11 +133,11 @@ export function CategoriasAdmin({ householdId }: Props) {
                     {!c.synced && <span className="pending" title="Pendiente de sincronizar"> ⏳</span>}
                   </span>
                   <div className="categoria-actions">
-                    <button type="button" className="secondary" onClick={() => empezarEdicion(c)}>
-                      ✏️
+                    <button type="button" title="Renombrar" onClick={() => empezarEdicion(c)}>
+                      <Pencil size={14} />
                     </button>
-                    <button type="button" className="delete-btn" onClick={() => handleBorrar(c)}>
-                      🗑
+                    <button type="button" className="delete-btn" title="Borrar" onClick={() => handleBorrar(c)}>
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </>

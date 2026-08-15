@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { WalletMinimal } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export function Login() {
@@ -18,6 +19,9 @@ export function Login() {
 
   return (
     <div className="login-screen">
+      <div className="login-mark">
+        <WalletMinimal size={26} color="white" />
+      </div>
       <h1>Gastos Familia</h1>
       <p className="subtitle">Iniciá sesión para registrar movimientos</p>
       <form onSubmit={handleSubmit}>

@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Gastos Familia',
         short_name: 'Gastos',
         description: 'Registro de gastos e ingresos familiares',
-        theme_color: '#1e293b',
-        background_color: '#0f172a',
+        theme_color: '#0a0f1e',
+        background_color: '#0a0f1e',
         display: 'standalone',
         start_url: '/',
         icons: [

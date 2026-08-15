@@ -34,29 +34,51 @@ async function pushPendienteGenerico<T extends Sincronizable>(tabla: string, tab
   return { pushed: pendientes.length }
 }
 
-/** Trae de Supabase los cambios (propios o del otro usuario) desde el último pull de esa tabla. */
+/**
+ * Trae de Supabase los cambios (propios o del otro usuario) desde el último pull de esa tabla.
+ *
+ * Pagina explícitamente: Supabase/PostgREST limita cada respuesta a un máximo de filas
+ * (por defecto 1000), así que una sola consulta no alcanza para households con muchos
+ * movimientos (por ejemplo, después de una carga masiva). Sin paginar, el `since` quedaba
+ * calculado sobre una página incompleta y el resto de las filas nunca se volvían a pedir
+ * (sobre todo si comparten el mismo `updated_at`, como pasa con filas insertadas en el
+ * mismo lote), dejando el saldo local desincronizado de forma persistente.
+ */
 async function pullRemotoGenerico<T extends Sincronizable>(
   tabla: string,
   tablaLocal: Table<T, string>,
   householdId: string
 ) {
   const since = getLastPull(tabla, householdId)
-  const { data, error } = await supabase
-    .from(tabla)
-    .select('*')
-    .eq('household_id', householdId)
-    .gt('updated_at', since)
-    .order('updated_at', { ascending: true })
+  const PAGE_SIZE = 1000
+  let offset = 0
+  let totalPulled = 0
+  let maxUpdatedAt = since
 
-  if (error) return { pulled: 0, error: error.message }
-  if (!data || data.length === 0) return { pulled: 0 }
+  while (true) {
+    const { data, error } = await supabase
+      .from(tabla)
+      .select('*')
+      .eq('household_id', householdId)
+      .gt('updated_at', since)
+      .order('updated_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1)
 
-  const registros = data.map((r) => ({ ...r, synced: 1 as const })) as T[]
-  await tablaLocal.bulkPut(registros)
+    if (error) return { pulled: totalPulled, error: error.message }
+    if (!data || data.length === 0) break
 
-  const maxUpdatedAt = data.reduce((max, r) => (r.updated_at > max ? r.updated_at : max), since)
-  setLastPull(tabla, householdId, maxUpdatedAt)
-  return { pulled: data.length }
+    const registros = data.map((r) => ({ ...r, synced: 1 as const })) as T[]
+    await tablaLocal.bulkPut(registros)
+    totalPulled += data.length
+    maxUpdatedAt = data.reduce((max, r) => (r.updated_at > max ? r.updated_at : max), maxUpdatedAt)
+
+    if (data.length < PAGE_SIZE) break // última página: no hace falta pedir más
+    offset += PAGE_SIZE
+  }
+
+  if (totalPulled > 0) setLastPull(tabla, householdId, maxUpdatedAt)
+  return { pulled: totalPulled }
 }
 
 export async function pushPending() {
