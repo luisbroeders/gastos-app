@@ -70,7 +70,10 @@ export function MovementList({ household }: Props) {
                 <div className={`movement-icon ${m.tipo}`}>{m.categoria.trim().charAt(0).toUpperCase() || '?'}</div>
                 <div className="movement-main">
                   <span className={`badge ${m.tipo}`}>{m.categoria}</span>
-                  <span className="detalle">{m.detalle}</span>
+                  <span className="detalle">
+                    {m.detalle}
+                    {m.forma_pago && <span className="forma-pago"> · {m.forma_pago}</span>}
+                  </span>
                 </div>
                 <div className="movement-side">
                   <span className={`monto ${m.tipo}`}>

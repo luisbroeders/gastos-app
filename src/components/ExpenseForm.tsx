@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Mic, Square, ArrowDownCircle, ArrowUpCircle, Send } from 'lucide-react'
 import { db } from '../db'
 import { runSync } from '../sync'
-import { DEFAULT_CATEGORIES } from '../categories'
+import { DEFAULT_CATEGORIES, FORMAS_PAGO } from '../categories'
 import { parseTextoLibre } from '../textParser'
 import { useVoiceInput, isVoiceInputSupported } from '../useVoiceInput'
 import type { Movimiento, TipoMovimiento } from '../types'
@@ -25,6 +25,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
   const [categoria, setCategoria] = useState(categorias[0] ?? DEFAULT_CATEGORIES[0])
   const [detalle, setDetalle] = useState('')
   const [monto, setMonto] = useState('')
+  const [formaPago, setFormaPago] = useState('')
   const [saving, setSaving] = useState(false)
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
   const [categoriaAuto, setCategoriaAuto] = useState(false)
@@ -66,6 +67,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
       detalle: detalle.trim(),
       monto: montoNum,
       tipo,
+      forma_pago: tipo === 'gasto' && formaPago ? formaPago : null,
       created_by: userId,
       created_by_nombre: userName,
       updated_at: now,
@@ -81,6 +83,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
 
     setDetalle('')
     setMonto('')
+    setFormaPago('')
     setSaving(false)
     setCategoriaAuto(false)
     setUltimoTranscript(null)
@@ -118,7 +121,10 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
         <button
           type="button"
           className={tipo === 'ingreso' ? 'active ingreso' : 'ingreso'}
-          onClick={() => setTipo('ingreso')}
+          onClick={() => {
+            setTipo('ingreso')
+            setFormaPago('')
+          }}
         >
           <ArrowUpCircle size={16} />
           Ingreso
@@ -156,6 +162,20 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
           onChange={(e) => setDetalle(e.target.value)}
         />
       </label>
+
+      {tipo === 'gasto' && (
+        <label>
+          Forma de pago (opcional)
+          <select value={formaPago} onChange={(e) => setFormaPago(e.target.value)}>
+            <option value="">Sin especificar</option>
+            {FORMAS_PAGO.map((f) => (
+              <option key={f} value={f}>
+                {f}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <label>
         Monto

@@ -8,6 +8,7 @@ export interface Movimiento {
   detalle: string
   monto: number // siempre positivo, el signo lo da `tipo`
   tipo: TipoMovimiento
+  forma_pago: string | null // opcional; solo aplica a gastos
   created_by: string
   created_by_nombre?: string
   updated_at: string // ISO timestamp, usado para resolver conflictos (last-write-wins)

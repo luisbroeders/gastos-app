@@ -350,6 +350,7 @@ header h1 {
 .movement-main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .badge { font-size: 0.85rem; font-weight: 700; color: var(--text); }
 .detalle { font-size: 0.76rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.forma-pago { font-style: italic; opacity: 0.8; }
 
 .movement-side { text-align: right; display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
 .monto { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 0.92rem; }

@@ -36,6 +36,21 @@ export const DEFAULT_CATEGORIES: string[] = [...CATEGORIAS_SIN_ORDENAR].sort((a,
   a.localeCompare(b, 'es', { sensitivity: 'base' })
 )
 
+// Formas de pago para gastos (campo opcional). Ordenadas alfabéticamente.
+const FORMAS_PAGO_SIN_ORDENAR = [
+  'Efectivo',
+  'Billetera Digital',
+  'Débito',
+  'Transferencia',
+  'Mastercard MeLi',
+  'Mastercard BNA',
+  'Mastercard BBVA',
+  'Visa BBVA',
+]
+export const FORMAS_PAGO: string[] = [...FORMAS_PAGO_SIN_ORDENAR].sort((a, b) =>
+  a.localeCompare(b, 'es', { sensitivity: 'base' })
+)
+
 // Palabras clave (sin tildes, minúsculas) para clasificar automáticamente un
 // texto libre en una de las categorías de arriba. Se usa tanto para la carga
 // por voz como, a futuro, para sugerir categoría en la carga manual.

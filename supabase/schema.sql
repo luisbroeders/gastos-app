@@ -30,6 +30,7 @@ create table if not exists movimientos (
   detalle text default '',
   monto numeric(14,2) not null check (monto > 0),
   tipo text not null check (tipo in ('gasto', 'ingreso')),
+  forma_pago text null,  -- opcional; solo aplica a gastos (Efectivo/Crédito/Billetera Digital/Débito/Transferencia)
   created_by uuid references profiles(id),
   created_by_nombre text,
   updated_at timestamptz not null default now(),
