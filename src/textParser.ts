@@ -32,24 +32,36 @@ function guessTipo(textoNormalizado: string): TipoMovimiento {
 }
 
 /**
- * Convierte un token puramente numérico (ej: "1.500,50", "1500", "1500.50")
- * a un número, siguiendo la convención Argentina (punto = miles, coma = decimales).
+ * Convierte un token puramente numérico a un número. A diferencia de una
+ * conversión "a la argentina" (que siempre asume punto=miles, coma=decimal),
+ * este parser es agnóstico al símbolo: mira cuántos dígitos hay después del
+ * ÚLTIMO separador para decidir si es parte decimal o separador de miles.
+ * Esto hace falta porque el reconocimiento de voz del navegador a veces
+ * devuelve los números ya convertidos a dígitos pero con formato al estilo
+ * inglés (coma de miles), sin importar el idioma configurado ('es-AR').
+ *
+ * Ejemplos: "42,200" y "42.200" dan ambos 42200 (3 dígitos después del
+ * separador = miles). "1.500,50" y "1,500.50" dan ambos 1500.5 (el último
+ * separador tiene 1-2 dígitos después = es el decimal).
  */
 function parseNumeroArg(token: string): number {
-  let t = token.trim()
-  const tieneComa = t.includes(',')
-  const tienePunto = t.includes('.')
+  const t = token.trim()
+  const lastDot = t.lastIndexOf('.')
+  const lastComma = t.lastIndexOf(',')
+  const lastSepIndex = Math.max(lastDot, lastComma)
 
-  if (tieneComa) {
-    t = t.replace(/\./g, '').replace(',', '.')
-  } else if (tienePunto) {
-    const partes = t.split('.')
-    const ultimo = partes[partes.length - 1]
-    if (ultimo.length === 3) {
-      t = t.replace(/\./g, '')
-    }
+  if (lastSepIndex === -1) return parseFloat(t)
+
+  const digitosDespues = t.length - lastSepIndex - 1
+  const esSeparadorDecimal = digitosDespues > 0 && digitosDespues <= 2
+
+  if (esSeparadorDecimal) {
+    const parteEntera = t.slice(0, lastSepIndex).replace(/[.,]/g, '')
+    const parteDecimal = t.slice(lastSepIndex + 1)
+    return parseFloat(`${parteEntera}.${parteDecimal}`)
   }
-  return parseFloat(t)
+  // Ninguno de los separadores es decimal: son todos separadores de miles.
+  return parseFloat(t.replace(/[.,]/g, ''))
 }
 
 // --- Vocabulario para números escritos en palabras (español) ---
