@@ -3,7 +3,7 @@ import { Mic, Square, ArrowDownCircle, ArrowUpCircle, Send } from 'lucide-react'
 import { db } from '../db'
 import { runSync } from '../sync'
 import { DEFAULT_CATEGORIES, FORMAS_PAGO } from '../categories'
-import { parseTextoLibre } from '../textParser'
+import { parseTextoLibre, parseMontoArgentino } from '../textParser'
 import { useVoiceInput, isVoiceInputSupported } from '../useVoiceInput'
 import type { Movimiento, TipoMovimiento } from '../types'
 
@@ -17,6 +17,13 @@ interface Props {
 
 function todayISODate() {
   return new Date().toISOString().slice(0, 10)
+}
+
+// Convierte un number de JS (que usa '.' como decimal) a como se escribe
+// a mano en el campo Monto (coma como decimal), para que lo que carga la
+// voz se pueda re-parsear con parseMontoArgentino sin ambigüedad.
+function formatMontoParaInput(n: number): string {
+  return String(n).replace('.', ',')
 }
 
 export function ExpenseForm({ householdId, userId, userName, categorias, onSaved }: Props) {
@@ -37,7 +44,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
     setUltimoTranscript(transcript)
     setTipo(resultado.tipo)
     setDetalle(resultado.detalle)
-    if (resultado.monto !== null) setMonto(String(resultado.monto))
+    if (resultado.monto !== null) setMonto(formatMontoParaInput(resultado.monto))
     setCategoria(resultado.categoria === 'Sin categoría' || !categorias.includes(resultado.categoria)
       ? 'Sin categoría'
       : resultado.categoria)
@@ -54,7 +61,7 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const montoNum = Number(monto.replace(',', '.'))
+    const montoNum = parseMontoArgentino(monto)
     if (!montoNum || montoNum <= 0) return
 
     setSaving(true)
@@ -180,14 +187,16 @@ export function ExpenseForm({ householdId, userId, userName, categorias, onSaved
       <label>
         Monto
         <input
-          type="number"
+          type="text"
           inputMode="decimal"
-          placeholder="0.00"
+          placeholder="0,00"
           value={monto}
-          onChange={(e) => setMonto(e.target.value)}
+          onChange={(e) => {
+            // Solo dígitos, punto (miles) y coma (decimal) — igual que se escribe a mano en Argentina
+            const limpio = e.target.value.replace(/[^0-9.,]/g, '')
+            setMonto(limpio)
+          }}
           required
-          min="0"
-          step="0.01"
         />
       </label>
 

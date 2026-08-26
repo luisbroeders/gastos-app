@@ -190,6 +190,21 @@ export interface ResultadoParseo {
 }
 
 /**
+ * Convierte lo que el usuario tipeó a mano en el campo Monto, siguiendo
+ * estrictamente la convención Argentina: punto = separador de miles,
+ * coma = separador decimal (ej: "1.234,56" -> 1234.56). A diferencia de
+ * parseNumeroArg (usado para voz), acá no hace falta inferir nada porque
+ * el usuario sabe lo que está escribiendo.
+ */
+export function parseMontoArgentino(texto: string): number | null {
+  const limpio = texto.trim()
+  if (!limpio) return null
+  const normalizado = limpio.replace(/\./g, '').replace(',', '.')
+  const num = parseFloat(normalizado)
+  return Number.isFinite(num) ? num : null
+}
+
+/**
  * Interpreta un texto libre (típicamente dictado por voz) y devuelve monto,
  * detalle (el texto sin el monto), categoría sugerida y tipo.
  *
