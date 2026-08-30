@@ -485,3 +485,16 @@ header h1 {
 .chart-totales strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 .chart-totales strong.ingreso { color: var(--positive); }
 .chart-totales strong.gasto { color: var(--negative); }
+
+.tarjeta-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.tarjeta-total span { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+.tarjeta-total strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }

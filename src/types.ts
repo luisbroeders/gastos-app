@@ -39,3 +39,17 @@ export interface Categoria {
   deleted: 0 | 1
   synced: 0 | 1 // solo local
 }
+
+export interface CompraTarjeta {
+  id: string // uuid, generado en el cliente
+  household_id: string
+  fecha: string // YYYY-MM-DD
+  descripcion: string
+  monto: number
+  tarjeta: string | null // opcional
+  created_by: string
+  created_by_nombre?: string
+  updated_at: string
+  deleted: 0 | 1
+  synced: 0 | 1 // solo local
+}

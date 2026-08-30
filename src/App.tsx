@@ -1,13 +1,14 @@
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import type { Session } from '@supabase/supabase-js'
-import { Receipt, BarChart3, LayoutGrid, LogOut } from 'lucide-react'
+import { Receipt, BarChart3, LayoutGrid, LogOut, CreditCard } from 'lucide-react'
 import { supabase } from './supabaseClient'
 import { Login } from './components/Login'
 import { ExpenseForm } from './components/ExpenseForm'
 import { MovementList } from './components/MovementList'
 import { SaldoActual } from './components/SaldoActual'
 import { CategoriasAdmin } from './components/CategoriasAdmin'
+import { ComprasTarjeta } from './components/ComprasTarjeta'
 const IngresosVsGastosChart = lazy(() =>
   import('./components/IngresosVsGastosChart').then((m) => ({ default: m.IngresosVsGastosChart }))
 )
@@ -19,7 +20,7 @@ import type { Household, Profile, Categoria } from './types'
 const HOUSEHOLD_CACHE_KEY = 'cached_household'
 const PROFILE_CACHE_KEY = 'cached_profile'
 
-type Tab = 'movimientos' | 'graficos' | 'dashboard'
+type Tab = 'movimientos' | 'graficos' | 'tarjeta' | 'dashboard'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -159,6 +160,10 @@ export default function App() {
         </Suspense>
       )}
 
+      {tab === 'tarjeta' && (
+        <ComprasTarjeta householdId={household.id} userId={profile.id} userName={profile.display_name} />
+      )}
+
       {tab === 'dashboard' && <CategoriasAdmin householdId={household.id} />}
 
       <nav className="bottom-nav">
@@ -170,6 +175,10 @@ export default function App() {
           <button className={tab === 'graficos' ? 'active' : ''} onClick={() => setTab('graficos')}>
             <BarChart3 size={20} />
             Gráficos
+          </button>
+          <button className={tab === 'tarjeta' ? 'active' : ''} onClick={() => setTab('tarjeta')}>
+            <CreditCard size={20} />
+            Tarjeta
           </button>
           <button className={tab === 'dashboard' ? 'active' : ''} onClick={() => setTab('dashboard')}>
             <LayoutGrid size={20} />

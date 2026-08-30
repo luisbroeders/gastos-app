@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 import { db } from './db'
-import type { Movimiento, Categoria } from './types'
+import type { Movimiento, Categoria, CompraTarjeta } from './types'
 import type { Table } from 'dexie'
 
 interface Sincronizable {
@@ -89,7 +89,7 @@ export async function pullRemote(householdId: string) {
   return pullRemotoGenerico<Movimiento>('movimientos', db.movimientos, householdId)
 }
 
-/** Push + pull de movimientos y categorías en un solo paso. Falla en silencio si no hay conexión. */
+/** Push + pull de movimientos, categorías y compras con tarjeta en un solo paso. Falla en silencio si no hay conexión. */
 export async function runSync(householdId: string) {
   if (!navigator.onLine) return
   try {
@@ -97,6 +97,8 @@ export async function runSync(householdId: string) {
     await pullRemotoGenerico<Movimiento>('movimientos', db.movimientos, householdId)
     await pushPendienteGenerico<Categoria>('categorias', db.categorias)
     await pullRemotoGenerico<Categoria>('categorias', db.categorias, householdId)
+    await pushPendienteGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta)
+    await pullRemotoGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta, householdId)
   } catch {
     // sin conexión real o error transitorio: se reintenta en el próximo ciclo
   }
@@ -126,6 +128,20 @@ export async function borrarCategoria(id: string, householdId: string) {
   const actual = await db.categorias.get(id)
   if (!actual) return
   await db.categorias.put({ ...actual, deleted: 1, updated_at: new Date().toISOString(), synced: 0 })
+  runSync(householdId)
+}
+
+/** Crea una compra con tarjeta. No afecta el saldo (no es un movimiento de caja). */
+export async function guardarCompraTarjeta(compra: CompraTarjeta, householdId: string) {
+  await db.comprasTarjeta.put(compra)
+  runSync(householdId)
+}
+
+/** Borra (soft-delete) una compra con tarjeta cargada mal. */
+export async function borrarCompraTarjeta(id: string, householdId: string) {
+  const actual = await db.comprasTarjeta.get(id)
+  if (!actual) return
+  await db.comprasTarjeta.put({ ...actual, deleted: 1, updated_at: new Date().toISOString(), synced: 0 })
   runSync(householdId)
 }
 
