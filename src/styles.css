@@ -498,3 +498,5 @@ header h1 {
 }
 .tarjeta-total span { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 .tarjeta-total strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

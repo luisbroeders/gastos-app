@@ -24,6 +24,8 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
   const [descripcion, setDescripcion] = useState('')
   const [monto, setMonto] = useState('')
   const [tarjeta, setTarjeta] = useState('')
+  const [cuotas, setCuotas] = useState('1')
+  const [tasa, setTasa] = useState('0')
   const [saving, setSaving] = useState(false)
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
   const [borrando, setBorrando] = useState<string | null>(null)
@@ -43,6 +45,9 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
     const montoNum = parseMontoArgentino(monto)
     if (!montoNum || montoNum <= 0 || !descripcion.trim()) return
 
+    const cuotasNum = parseInt(cuotas, 10)
+    const tasaNum = parseMontoArgentino(tasa)
+
     setSaving(true)
     const nueva: CompraTarjeta = {
       id: crypto.randomUUID(),
@@ -51,6 +56,8 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
       descripcion: descripcion.trim(),
       monto: montoNum,
       tarjeta: tarjeta || null,
+      cuotas: Number.isFinite(cuotasNum) && cuotasNum > 0 ? cuotasNum : 1,
+      tasa: tasaNum !== null && tasaNum >= 0 ? tasaNum : 0,
       created_by: userId,
       created_by_nombre: userName,
       updated_at: new Date().toISOString(),
@@ -62,6 +69,8 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
     setDescripcion('')
     setMonto('')
     setTarjeta('')
+    setCuotas('1')
+    setTasa('0')
     setSaving(false)
     setSavedMsg(navigator.onLine ? 'Guardado ✓' : 'Guardado localmente — se sincroniza al recuperar señal')
     setTimeout(() => setSavedMsg(null), 2500)
@@ -125,6 +134,32 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
           </select>
         </label>
 
+        <div className="form-row-2">
+          <label>
+            Cuotas (opcional)
+            <input
+              type="number"
+              inputMode="numeric"
+              min="1"
+              step="1"
+              placeholder="1"
+              value={cuotas}
+              onChange={(e) => setCuotas(e.target.value.replace(/[^0-9]/g, ''))}
+            />
+          </label>
+
+          <label>
+            Tasa % (opcional)
+            <input
+              type="text"
+              inputMode="decimal"
+              placeholder="0"
+              value={tasa}
+              onChange={(e) => setTasa(e.target.value.replace(/[^0-9.,]/g, ''))}
+            />
+          </label>
+        </div>
+
         <button type="submit" className="submit-btn" disabled={saving}>
           {saving ? 'Guardando...' : (<><Send size={16} /> Registrar</>)}
         </button>
@@ -146,7 +181,16 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
             </div>
             <div className="movement-main">
               <span className="badge gasto">{c.descripcion}</span>
-              <span className="detalle">{c.tarjeta ?? 'Sin tarjeta especificada'}</span>
+              <span className="detalle">
+                {c.tarjeta ?? 'Sin tarjeta especificada'}
+                {(c.cuotas > 1 || c.tasa > 0) && (
+                  <span className="forma-pago">
+                    {' '}
+                    · {c.cuotas > 1 ? `${c.cuotas} cuotas` : '1 cuota'}
+                    {c.tasa > 0 ? ` (${c.tasa}% TNA)` : ''}
+                  </span>
+                )}
+              </span>
             </div>
             <div className="movement-side">
               <span className="monto gasto">{money.format(c.monto)}</span>

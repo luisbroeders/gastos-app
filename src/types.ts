@@ -47,6 +47,8 @@ export interface CompraTarjeta {
   descripcion: string
   monto: number
   tarjeta: string | null // opcional
+  cuotas: number // opcional para el usuario; por defecto 1
+  tasa: number // opcional para el usuario; por defecto 0 (%)
   created_by: string
   created_by_nombre?: string
   updated_at: string
