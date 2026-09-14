@@ -1,14 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useState } from 'react'
-import { CreditCard, Send, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { CreditCard, Send, Trash2, CalendarCog } from 'lucide-react'
 import { db } from '../db'
-import { guardarCompraTarjeta, borrarCompraTarjeta } from '../sync'
+import { guardarCompraTarjeta, borrarCompraTarjeta, guardarTarjetaCierre } from '../sync'
 import { TARJETAS } from '../categories'
 import { parseMontoArgentino } from '../textParser'
-import type { CompraTarjeta } from '../types'
+import { parseFechaLocal, numeroDeCiclo, calcularValorCuota } from '../cicloTarjeta'
+import type { CompraTarjeta, Household } from '../types'
 
 interface Props {
-  householdId: string
+  household: Household
   userId: string
   userName: string
 }
@@ -19,7 +20,13 @@ function todayISODate() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export function ComprasTarjeta({ householdId, userId, userName }: Props) {
+interface Borrador {
+  anterior: string
+  proximo: string
+}
+
+export function ComprasTarjeta({ household, userId, userName }: Props) {
+  const householdId = household.id
   const [fecha, setFecha] = useState(todayISODate())
   const [descripcion, setDescripcion] = useState('')
   const [monto, setMonto] = useState('')
@@ -39,6 +46,50 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
         .toArray(),
     [householdId]
   )
+
+  const cierres = useLiveQuery(
+    () =>
+      db.tarjetasCierres
+        .where('household_id')
+        .equals(householdId)
+        .and((t) => t.deleted === 0)
+        .toArray(),
+    [householdId]
+  )
+  const cierresPorTarjeta = new Map((cierres ?? []).map((c) => [c.tarjeta, c]))
+
+  // Borrador de edición de fechas por tarjeta. Se "siembra" una sola vez con
+  // lo que ya está guardado (para no pisar lo que el usuario esté tipeando
+  // si llega una sincronización de fondo mientras edita).
+  const [borradores, setBorradores] = useState<Record<string, Borrador>>(
+    Object.fromEntries(TARJETAS.map((t) => [t, { anterior: '', proximo: '' }]))
+  )
+  const sembrado = useRef(false)
+  useEffect(() => {
+    if (sembrado.current || !cierres) return
+    sembrado.current = true
+    setBorradores((prev) => {
+      const next = { ...prev }
+      for (const t of TARJETAS) {
+        const guardado = cierresPorTarjeta.get(t)
+        next[t] = { anterior: guardado?.cierre_anterior ?? '', proximo: guardado?.cierre_proximo ?? '' }
+      }
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cierres])
+
+  const [guardandoTarjeta, setGuardandoTarjeta] = useState<string | null>(null)
+  const [cierreMsg, setCierreMsg] = useState<string | null>(null)
+
+  async function handleGuardarCierre(t: string) {
+    const b = borradores[t]
+    setGuardandoTarjeta(t)
+    await guardarTarjetaCierre(householdId, t, b.anterior || null, b.proximo || null)
+    setGuardandoTarjeta(null)
+    setCierreMsg(`Fechas de ${t} guardadas ✓`)
+    setTimeout(() => setCierreMsg(null), 2500)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -84,13 +135,110 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
   }
 
   const ordenadas = (compras ?? []).slice().sort((a, b) => b.fecha.localeCompare(a.fecha))
-  const total = ordenadas.reduce((acc, c) => acc + c.monto, 0)
+
+  // Acumulado del ciclo actual, POR TARJETA: cada tarjeta tiene su propio
+  // ciclo (definido por sus dos fechas de cierre). Cada cuota de cada compra
+  // de esa tarjeta cae en el ciclo de la compra + (número de cuota - 1);
+  // sumamos las que caen en el ciclo 0 (el actual) de ESA tarjeta.
+  const acumuladoPorTarjeta: Record<string, number> = {}
+  for (const t of TARJETAS) {
+    const cierre = cierresPorTarjeta.get(t)
+    if (!cierre?.cierre_anterior || !cierre?.cierre_proximo) continue
+    const anterior = parseFechaLocal(cierre.cierre_anterior)
+    const proximo = parseFechaLocal(cierre.cierre_proximo)
+    let acumulado = 0
+    for (const c of ordenadas) {
+      if (c.tarjeta !== t) continue
+      const cicloCompra = numeroDeCiclo(parseFechaLocal(c.fecha), anterior, proximo)
+      if (cicloCompra === null) continue
+      const valorCuota = calcularValorCuota(c.monto, c.cuotas, c.tasa)
+      for (let i = 0; i < c.cuotas; i++) {
+        if (cicloCompra + i === 0) acumulado += valorCuota
+      }
+    }
+    acumuladoPorTarjeta[t] = acumulado
+  }
+  const totalAcumulado = Object.values(acumuladoPorTarjeta).reduce((a, b) => a + b, 0)
+  const hayAlgunCicloConfigurado = Object.keys(acumuladoPorTarjeta).length > 0
 
   return (
     <div className="tarjeta-section">
       <p className="categorias-hint">
         Estas compras quedan registradas aparte y <strong>no descuentan del saldo</strong>, porque
         no son pagos hechos con dinero en el momento (se pagan después, con el resumen de la tarjeta).
+      </p>
+
+      <h2 className="tarjeta-subtitulo"><CalendarCog size={16} /> Fechas de cierre por tarjeta</h2>
+      <p className="categorias-hint">
+        Cargá la fecha del cierre anterior (arranca el ciclo actual) y la próxima fecha de cierre
+        (lo termina). Cuando llegue el resumen real, actualizalas: lo que hoy es "próximo" pasa a
+        ser el "anterior" del ciclo siguiente.
+      </p>
+
+      <div className="cierres-list">
+        {TARJETAS.map((t) => {
+          const configurada = !!(borradores[t]?.anterior && borradores[t]?.proximo)
+          return (
+            <details key={t} className="cierre-row">
+              <summary className="cierre-summary">
+                <span className="cierre-tarjeta-nombre">{t}</span>
+                {configurada && <span className="cierre-badge-ok">✓ configurada</span>}
+              </summary>
+              <div className="cierre-fechas">
+                <label>
+                  Cierre anterior
+                  <input
+                    type="date"
+                    value={borradores[t]?.anterior ?? ''}
+                    onChange={(e) =>
+                      setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], anterior: e.target.value } }))
+                    }
+                  />
+                </label>
+                <label>
+                  Próximo cierre
+                  <input
+                    type="date"
+                    value={borradores[t]?.proximo ?? ''}
+                    onChange={(e) =>
+                      setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], proximo: e.target.value } }))
+                    }
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="submit-btn secondary-btn cierre-guardar-btn"
+                  disabled={guardandoTarjeta === t}
+                  onClick={() => handleGuardarCierre(t)}
+                >
+                  {guardandoTarjeta === t ? '...' : 'Guardar'}
+                </button>
+              </div>
+            </details>
+          )
+        })}
+      </div>
+      {cierreMsg && <p className="saved-msg">{cierreMsg}</p>}
+
+      {hayAlgunCicloConfigurado && (
+        <div className="tarjeta-total acumulado">
+          <div className="acumulado-total-row">
+            <span>Total acumulado (todas las tarjetas)</span>
+            <strong>{money.format(totalAcumulado)}</strong>
+          </div>
+          <div className="acumulado-detalle">
+            {TARJETAS.filter((t) => acumuladoPorTarjeta[t] !== undefined).map((t) => (
+              <div key={t} className="acumulado-detalle-item">
+                <span>{t}</span>
+                <span>{money.format(acumuladoPorTarjeta[t])}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      <p className="categorias-hint">
+        Solo se cuentan en el acumulado las compras que tienen una tarjeta específica asignada
+        (no las que quedaron "Sin especificar").
       </p>
 
       <form className="expense-form" onSubmit={handleSubmit}>
@@ -166,13 +314,6 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
         {savedMsg && <p className="saved-msg">{savedMsg}</p>}
       </form>
 
-      {ordenadas.length > 0 && (
-        <div className="tarjeta-total">
-          <span>Total registrado</span>
-          <strong>{money.format(total)}</strong>
-        </div>
-      )}
-
       <div className="movement-list">
         {ordenadas.map((c) => (
           <div key={c.id} className="movement-row">
@@ -186,7 +327,7 @@ export function ComprasTarjeta({ householdId, userId, userName }: Props) {
                 {(c.cuotas > 1 || c.tasa > 0) && (
                   <span className="forma-pago">
                     {' '}
-                    · {c.cuotas > 1 ? `${c.cuotas} cuotas` : '1 cuota'}
+                    · {c.cuotas > 1 ? `${c.cuotas} cuotas de ${money.format(calcularValorCuota(c.monto, c.cuotas, c.tasa))}` : '1 cuota'}
                     {c.tasa > 0 ? ` (${c.tasa}% TNA)` : ''}
                   </span>
                 )}

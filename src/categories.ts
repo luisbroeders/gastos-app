@@ -52,7 +52,7 @@ export const FORMAS_PAGO: string[] = [...FORMAS_PAGO_SIN_ORDENAR].sort((a, b) =>
 )
 
 // Tarjetas para compras a crédito (campo opcional). Ordenadas alfabéticamente.
-const TARJETAS_SIN_ORDENAR = ['Visa BBVA', 'Mastercard BBVA', 'Mastercard MP', 'Mastercard BNA']
+const TARJETAS_SIN_ORDENAR = ['Visa BBVA', 'Mastercard BBVA', 'Mastercard MP Luis', 'Mastercard MP Euge', 'Mastercard BNA']
 export const TARJETAS: string[] = [...TARJETAS_SIN_ORDENAR].sort((a, b) =>
   a.localeCompare(b, 'es', { sensitivity: 'base' })
 )

@@ -55,3 +55,14 @@ export interface CompraTarjeta {
   deleted: 0 | 1
   synced: 0 | 1 // solo local
 }
+
+export interface TarjetaCierre {
+  id: string // uuid, generado en el cliente (uno por tarjeta)
+  household_id: string
+  tarjeta: string // uno de los valores de TARJETAS
+  cierre_anterior: string | null // YYYY-MM-DD — arranca el ciclo actual
+  cierre_proximo: string | null // YYYY-MM-DD — termina el ciclo actual
+  updated_at: string
+  deleted: 0 | 1
+  synced: 0 | 1 // solo local
+}

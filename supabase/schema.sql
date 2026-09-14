@@ -52,6 +52,43 @@ create table if not exists categorias (
 create index if not exists idx_categorias_household on categorias(household_id);
 create index if not exists idx_categorias_updated_at on categorias(updated_at);
 
+-- Compras con tarjeta de crédito: no afectan el saldo (no son plata que salió
+-- de la cuenta en el momento, se pagan después con el resumen de la tarjeta)
+create table if not exists compras_tarjeta (
+  id uuid primary key,
+  household_id uuid not null references households(id),
+  fecha date not null,
+  descripcion text not null,
+  monto numeric(14,2) not null check (monto > 0),
+  tarjeta text null,
+  cuotas integer not null default 1,
+  tasa numeric(6,2) not null default 0,
+  created_by uuid references profiles(id),
+  created_by_nombre text,
+  updated_at timestamptz not null default now(),
+  deleted smallint not null default 0
+);
+
+create index if not exists idx_compras_tarjeta_household on compras_tarjeta(household_id);
+create index if not exists idx_compras_tarjeta_updated_at on compras_tarjeta(updated_at);
+
+-- Fechas de cierre por tarjeta (una fila por tarjeta): son fechas exactas,
+-- no un día del mes que se repite, porque el cierre real puede correrse
+-- (fines de semana, feriados, políticas del banco).
+create table if not exists tarjetas_cierres (
+  id uuid primary key,
+  household_id uuid not null references households(id),
+  tarjeta text not null,
+  cierre_anterior date null,  -- arranca el ciclo actual
+  cierre_proximo date null,   -- termina el ciclo actual
+  updated_at timestamptz not null default now(),
+  deleted smallint not null default 0,
+  unique (household_id, tarjeta)
+);
+
+create index if not exists idx_tarjetas_cierres_household on tarjetas_cierres(household_id);
+create index if not exists idx_tarjetas_cierres_updated_at on tarjetas_cierres(updated_at);
+
 -- =========================================================
 -- Row Level Security: cada usuario solo ve datos de su household
 -- =========================================================
@@ -68,6 +105,8 @@ $$;
 alter table households enable row level security;
 alter table profiles enable row level security;
 alter table movimientos enable row level security;
+alter table compras_tarjeta enable row level security;
+alter table tarjetas_cierres enable row level security;
 
 create policy "select own household" on households
   for select using (id = get_my_household());
@@ -94,6 +133,24 @@ create policy "insert categorias same household" on categorias
   for insert with check (household_id = get_my_household());
 
 create policy "update categorias same household" on categorias
+  for update using (household_id = get_my_household());
+
+create policy "select compras_tarjeta same household" on compras_tarjeta
+  for select using (household_id = get_my_household());
+
+create policy "insert compras_tarjeta same household" on compras_tarjeta
+  for insert with check (household_id = get_my_household());
+
+create policy "update compras_tarjeta same household" on compras_tarjeta
+  for update using (household_id = get_my_household());
+
+create policy "select tarjetas_cierres same household" on tarjetas_cierres
+  for select using (household_id = get_my_household());
+
+create policy "insert tarjetas_cierres same household" on tarjetas_cierres
+  for insert with check (household_id = get_my_household());
+
+create policy "update tarjetas_cierres same household" on tarjetas_cierres
   for update using (household_id = get_my_household());
 
 -- =========================================================

@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 import { db } from './db'
-import type { Movimiento, Categoria, CompraTarjeta } from './types'
+import type { Movimiento, Categoria, CompraTarjeta, TarjetaCierre } from './types'
 import type { Table } from 'dexie'
 
 interface Sincronizable {
@@ -89,7 +89,7 @@ export async function pullRemote(householdId: string) {
   return pullRemotoGenerico<Movimiento>('movimientos', db.movimientos, householdId)
 }
 
-/** Push + pull de movimientos, categorías y compras con tarjeta en un solo paso. Falla en silencio si no hay conexión. */
+/** Push + pull de movimientos, categorías, compras con tarjeta y sus fechas de cierre. Falla en silencio si no hay conexión. */
 export async function runSync(householdId: string) {
   if (!navigator.onLine) return
   try {
@@ -99,6 +99,8 @@ export async function runSync(householdId: string) {
     await pullRemotoGenerico<Categoria>('categorias', db.categorias, householdId)
     await pushPendienteGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta)
     await pullRemotoGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta, householdId)
+    await pushPendienteGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres)
+    await pullRemotoGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres, householdId)
   } catch {
     // sin conexión real o error transitorio: se reintenta en el próximo ciclo
   }
@@ -145,7 +147,36 @@ export async function borrarCompraTarjeta(id: string, householdId: string) {
   runSync(householdId)
 }
 
-/** Arranca sincronización periódica + al reconectar. Devuelve función de limpieza. */
+/**
+ * Guarda las fechas de cierre de una tarjeta (una fila por tarjeta). Si ya
+ * existía una fila para esa tarjeta la actualiza (mismo id); si no, crea una
+ * nueva. Esto evita duplicados si el usuario edita las fechas más de una vez.
+ */
+export async function guardarTarjetaCierre(
+  householdId: string,
+  tarjeta: string,
+  cierreAnterior: string | null,
+  cierreProximo: string | null
+) {
+  const existente = await db.tarjetasCierres
+    .where('household_id')
+    .equals(householdId)
+    .and((t) => t.tarjeta === tarjeta && t.deleted === 0)
+    .first()
+
+  const registro: TarjetaCierre = {
+    id: existente?.id ?? crypto.randomUUID(),
+    household_id: householdId,
+    tarjeta,
+    cierre_anterior: cierreAnterior,
+    cierre_proximo: cierreProximo,
+    updated_at: new Date().toISOString(),
+    deleted: 0,
+    synced: 0,
+  }
+  await db.tarjetasCierres.put(registro)
+  runSync(householdId)
+}
 export function startSyncLoop(householdId: string, intervalMs = 30_000) {
   const tick = () => runSync(householdId)
   tick()

@@ -161,7 +161,7 @@ export default function App() {
       )}
 
       {tab === 'tarjeta' && (
-        <ComprasTarjeta householdId={household.id} userId={profile.id} userName={profile.display_name} />
+        <ComprasTarjeta household={household} userId={profile.id} userName={profile.display_name} />
       )}
 
       {tab === 'dashboard' && <CategoriasAdmin householdId={household.id} />}

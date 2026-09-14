@@ -500,3 +500,96 @@ header h1 {
 .tarjeta-total strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
 
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.tarjeta-subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 8px 0 4px;
+}
+
+.cierres-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px; }
+.cierre-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+.cierre-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+.cierre-summary::-webkit-details-marker { display: none; }
+.cierre-summary::after {
+  content: '▾';
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.cierre-row[open] .cierre-summary::after { transform: rotate(180deg); }
+.cierre-badge-ok { font-size: 0.68rem; color: var(--positive); font-weight: 600; margin-right: auto; margin-left: 8px; }
+.cierre-tarjeta-nombre { font-size: 0.85rem; font-weight: 700; }
+.cierre-fechas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+  margin-top: 12px;
+}
+.cierre-fechas label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+.cierre-fechas input {
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+.cierre-guardar-btn { grid-column: 1 / -1; padding: 9px; font-size: 0.82rem; }
+
+.submit-btn.secondary-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.tarjeta-total.acumulado {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.acumulado-total-row { display: flex; justify-content: space-between; align-items: baseline; }
+.acumulado-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.acumulado-detalle-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.tarjeta-total.acumulado {
+  background: rgba(109, 94, 249, 0.12);
+  border-color: rgba(109, 94, 249, 0.35);
+}
+.tarjeta-total.acumulado strong { color: #b7aeff; }
