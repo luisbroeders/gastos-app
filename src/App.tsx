@@ -9,6 +9,7 @@ import { MovementList } from './components/MovementList'
 import { SaldoActual } from './components/SaldoActual'
 import { CategoriasAdmin } from './components/CategoriasAdmin'
 import { ComprasTarjeta } from './components/ComprasTarjeta'
+import { SyncStatus } from './components/SyncStatus'
 const IngresosVsGastosChart = lazy(() =>
   import('./components/IngresosVsGastosChart').then((m) => ({ default: m.IngresosVsGastosChart }))
 )
@@ -140,6 +141,8 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <SyncStatus householdId={household.id} />
 
       {tab === 'movimientos' && (
         <>

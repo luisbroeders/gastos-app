@@ -77,6 +77,28 @@ header h1 {
 }
 .icon-btn:active { color: var(--text); }
 
+.sync-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.sync-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.sync-btn:disabled { opacity: 0.7; }
+.sync-fecha { font-size: 0.68rem; color: var(--text-muted); }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
 /* ---------- Login ---------- */
 .login-screen {
   max-width: 360px;

@@ -12,6 +12,8 @@ interface Sincronizable {
 }
 
 const LAST_PULL_KEY = (tabla: string, householdId: string) => `last_pull_${tabla}_${householdId}`
+const ULTIMA_SYNC_KEY = (householdId: string) => `ultima_sync_${householdId}`
+const EVENTO_SYNC = 'gastos-sync-actualizada'
 
 function getLastPull(tabla: string, householdId: string): string {
   return localStorage.getItem(LAST_PULL_KEY(tabla, householdId)) ?? '1970-01-01T00:00:00.000Z'
@@ -20,6 +22,22 @@ function getLastPull(tabla: string, householdId: string): string {
 function setLastPull(tabla: string, householdId: string, iso: string) {
   localStorage.setItem(LAST_PULL_KEY(tabla, householdId), iso)
 }
+
+/** Fecha/hora (ISO) de la última sincronización exitosa, o null si nunca sincronizó en este dispositivo. */
+export function getUltimaSync(householdId: string): string | null {
+  return localStorage.getItem(ULTIMA_SYNC_KEY(householdId))
+}
+
+function setUltimaSync(householdId: string) {
+  const ahora = new Date().toISOString()
+  localStorage.setItem(ULTIMA_SYNC_KEY(householdId), ahora)
+  // Evento propio para que la UI (el indicador de "última sync") se actualice
+  // en el momento, sea que la sincronización haya sido automática o manual.
+  window.dispatchEvent(new CustomEvent(EVENTO_SYNC, { detail: { householdId, fecha: ahora } }))
+}
+
+/** Nombre del evento que dispara cada sincronización exitosa (útil para suscribirse desde componentes). */
+export const EVENTO_SYNC_ACTUALIZADA = EVENTO_SYNC
 
 /** Sube a Supabase los registros locales todavía no sincronizados de una tabla. */
 async function pushPendienteGenerico<T extends Sincronizable>(tabla: string, tablaLocal: Table<T, string>) {
@@ -101,6 +119,7 @@ export async function runSync(householdId: string) {
     await pullRemotoGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta, householdId)
     await pushPendienteGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres)
     await pullRemotoGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres, householdId)
+    setUltimaSync(householdId)
   } catch {
     // sin conexión real o error transitorio: se reintenta en el próximo ciclo
   }
@@ -177,6 +196,7 @@ export async function guardarTarjetaCierre(
   await db.tarjetasCierres.put(registro)
   runSync(householdId)
 }
+/** Arranca sincronización periódica + al reconectar. Devuelve función de limpieza. */
 export function startSyncLoop(householdId: string, intervalMs = 30_000) {
   const tick = () => runSync(householdId)
   tick()
