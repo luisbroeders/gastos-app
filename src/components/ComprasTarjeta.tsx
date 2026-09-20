@@ -1,11 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { CreditCard, Send, Trash2, CalendarCog } from 'lucide-react'
 import { db } from '../db'
 import { guardarCompraTarjeta, borrarCompraTarjeta, guardarTarjetaCierre } from '../sync'
 import { TARJETAS } from '../categories'
 import { parseMontoArgentino } from '../textParser'
 import { parseFechaLocal, numeroDeCiclo, calcularValorCuota } from '../cicloTarjeta'
+import { FechaSelector } from './FechaSelector'
 import type { CompraTarjeta, Household } from '../types'
 
 interface Props {
@@ -58,34 +59,29 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
   )
   const cierresPorTarjeta = new Map((cierres ?? []).map((c) => [c.tarjeta, c]))
 
-  // Borrador de edición de fechas por tarjeta. Se "siembra" una sola vez con
-  // lo que ya está guardado (para no pisar lo que el usuario esté tipeando
-  // si llega una sincronización de fondo mientras edita).
-  const [borradores, setBorradores] = useState<Record<string, Borrador>>(
-    Object.fromEntries(TARJETAS.map((t) => [t, { anterior: '', proximo: '' }]))
-  )
-  const sembrado = useRef(false)
-  useEffect(() => {
-    if (sembrado.current || !cierres) return
-    sembrado.current = true
-    setBorradores((prev) => {
-      const next = { ...prev }
-      for (const t of TARJETAS) {
-        const guardado = cierresPorTarjeta.get(t)
-        next[t] = { anterior: guardado?.cierre_anterior ?? '', proximo: guardado?.cierre_proximo ?? '' }
-      }
-      return next
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cierres])
+  // Borrador de edición de fechas por tarjeta. A diferencia de "precargar"
+  // los inputs una sola vez al toque (lo que puede ganarle de mano a la
+  // sincronización y dejar el campo vacío si todavía no bajaron los datos),
+  // cada campo muestra el valor YA GUARDADO en vivo hasta que el usuario lo
+  // edita — así siempre refleja lo último sincronizado, en cualquier
+  // dispositivo, sin carreras con el pull en segundo plano.
+  const [borradores, setBorradores] = useState<Record<string, Partial<Borrador>>>({})
+
+  function valorMostrado(t: string, campo: keyof Borrador): string {
+    const editado = borradores[t]?.[campo]
+    if (editado !== undefined) return editado
+    const guardado = cierresPorTarjeta.get(t)
+    return (campo === 'anterior' ? guardado?.cierre_anterior : guardado?.cierre_proximo) ?? ''
+  }
 
   const [guardandoTarjeta, setGuardandoTarjeta] = useState<string | null>(null)
   const [cierreMsg, setCierreMsg] = useState<string | null>(null)
 
   async function handleGuardarCierre(t: string) {
-    const b = borradores[t]
+    const anterior = valorMostrado(t, 'anterior')
+    const proximo = valorMostrado(t, 'proximo')
     setGuardandoTarjeta(t)
-    await guardarTarjetaCierre(householdId, t, b.anterior || null, b.proximo || null)
+    await guardarTarjetaCierre(householdId, t, anterior || null, proximo || null)
     setGuardandoTarjeta(null)
     setCierreMsg(`Fechas de ${t} guardadas ✓`)
     setTimeout(() => setCierreMsg(null), 2500)
@@ -177,7 +173,7 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
 
       <div className="cierres-list">
         {TARJETAS.map((t) => {
-          const configurada = !!(borradores[t]?.anterior && borradores[t]?.proximo)
+          const configurada = !!(valorMostrado(t, 'anterior') && valorMostrado(t, 'proximo'))
           return (
             <details key={t} className="cierre-row">
               <summary className="cierre-summary">
@@ -187,22 +183,16 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
               <div className="cierre-fechas">
                 <label>
                   Cierre anterior
-                  <input
-                    type="date"
-                    value={borradores[t]?.anterior ?? ''}
-                    onChange={(e) =>
-                      setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], anterior: e.target.value } }))
-                    }
+                  <FechaSelector
+                    value={valorMostrado(t, 'anterior')}
+                    onChange={(iso) => setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], anterior: iso } }))}
                   />
                 </label>
                 <label>
                   Próximo cierre
-                  <input
-                    type="date"
-                    value={borradores[t]?.proximo ?? ''}
-                    onChange={(e) =>
-                      setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], proximo: e.target.value } }))
-                    }
+                  <FechaSelector
+                    value={valorMostrado(t, 'proximo')}
+                    onChange={(iso) => setBorradores((prev) => ({ ...prev, [t]: { ...prev[t], proximo: iso } }))}
                   />
                 </label>
                 <button
