@@ -138,6 +138,17 @@ export async function borrarMovimiento(id: string, householdId: string) {
   runSync(householdId)
 }
 
+/**
+ * Edita un movimiento ya cargado. Se guarda primero en local (funciona
+ * offline) con `updated_at` nuevo y `synced = 0`, así el próximo sync lo sube
+ * (upsert por id) y el otro usuario recibe la versión corregida. Si dos
+ * personas editan el mismo movimiento a la vez, gana la última escritura.
+ */
+export async function editarMovimiento(cambios: Movimiento, householdId: string) {
+  await db.movimientos.put({ ...cambios, updated_at: new Date().toISOString(), synced: 0 })
+  runSync(householdId)
+}
+
 /** Crea o renombra una categoría (ABM). Funciona offline igual que el resto. */
 export async function guardarCategoria(categoria: Categoria, householdId: string) {
   await db.categorias.put(categoria)
@@ -155,6 +166,12 @@ export async function borrarCategoria(id: string, householdId: string) {
 /** Crea una compra con tarjeta. No afecta el saldo (no es un movimiento de caja). */
 export async function guardarCompraTarjeta(compra: CompraTarjeta, householdId: string) {
   await db.comprasTarjeta.put(compra)
+  runSync(householdId)
+}
+
+/** Edita una compra con tarjeta ya cargada: se guarda local y queda pendiente para el próximo sync. */
+export async function editarCompraTarjeta(cambios: CompraTarjeta, householdId: string) {
+  await db.comprasTarjeta.put({ ...cambios, updated_at: new Date().toISOString(), synced: 0 })
   runSync(householdId)
 }
 

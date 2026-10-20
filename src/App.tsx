@@ -153,7 +153,7 @@ export default function App() {
             userName={profile.display_name}
             categorias={nombresCategorias}
           />
-          <MovementList household={household} />
+          <MovementList household={household} categorias={nombresCategorias} />
         </>
       )}
 

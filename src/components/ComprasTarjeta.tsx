@@ -1,12 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { CreditCard, Send, Trash2, CalendarCog } from 'lucide-react'
+import { CreditCard, Send, Trash2, Pencil, CalendarCog } from 'lucide-react'
 import { db } from '../db'
 import { guardarCompraTarjeta, borrarCompraTarjeta, guardarTarjetaCierre } from '../sync'
 import { TARJETAS } from '../categories'
 import { parseMontoArgentino } from '../textParser'
 import { parseFechaLocal, numeroDeCiclo, calcularValorCuota } from '../cicloTarjeta'
 import { FechaSelector } from './FechaSelector'
+import { EditCompraTarjetaModal } from './EditCompraTarjetaModal'
 import type { CompraTarjeta, Household } from '../types'
 
 interface Props {
@@ -37,6 +38,7 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
   const [saving, setSaving] = useState(false)
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
   const [borrando, setBorrando] = useState<string | null>(null)
+  const [editando, setEditando] = useState<CompraTarjeta | null>(null)
 
   const compras = useLiveQuery(
     () =>
@@ -330,6 +332,14 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
             </div>
             <button
               type="button"
+              className="delete-btn edit-btn"
+              title="Editar"
+              onClick={() => setEditando(c)}
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              type="button"
               className="delete-btn"
               title="Borrar"
               disabled={borrando === c.id}
@@ -340,6 +350,10 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
           </div>
         ))}
       </div>
+
+      {editando && (
+        <EditCompraTarjetaModal compra={editando} householdId={householdId} onClose={() => setEditando(null)} />
+      )}
     </div>
   )
 }

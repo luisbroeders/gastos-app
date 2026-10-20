@@ -1,18 +1,21 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Pencil } from 'lucide-react'
 import { db } from '../db'
 import { borrarMovimiento } from '../sync'
-import type { Household } from '../types'
+import { EditMovimientoModal } from './EditMovimientoModal'
+import type { Household, Movimiento } from '../types'
 
 interface Props {
   household: Household
+  categorias: string[]
 }
 
 const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' })
 
-export function MovementList({ household }: Props) {
+export function MovementList({ household, categorias }: Props) {
   const [borrando, setBorrando] = useState<string | null>(null)
+  const [editando, setEditando] = useState<Movimiento | null>(null)
 
   // useLiveQuery re-renderiza automáticamente cuando cambia IndexedDB
   // (ya sea por una carga local nueva o por datos que trajo el sync).
@@ -85,6 +88,14 @@ export function MovementList({ household }: Props) {
                 </div>
                 <button
                   type="button"
+                  className="delete-btn edit-btn"
+                  title="Editar movimiento"
+                  onClick={() => setEditando(m)}
+                >
+                  <Pencil size={15} />
+                </button>
+                <button
+                  type="button"
                   className="delete-btn"
                   title="Borrar movimiento"
                   disabled={borrando === m.id}
@@ -97,6 +108,15 @@ export function MovementList({ household }: Props) {
           </div>
         )
       })}
+
+      {editando && (
+        <EditMovimientoModal
+          movimiento={editando}
+          categorias={categorias}
+          householdId={household.id}
+          onClose={() => setEditando(null)}
+        />
+      )}
     </div>
   )
 }

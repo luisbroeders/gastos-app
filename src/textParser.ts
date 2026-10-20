@@ -205,6 +205,15 @@ export function parseMontoArgentino(texto: string): number | null {
 }
 
 /**
+ * Inverso de parseMontoArgentino: convierte un number de JS (que usa '.' como
+ * decimal) a como se escribe a mano en el campo Monto (coma como decimal, sin
+ * separador de miles), para poder volver a parsearlo sin ambigüedad.
+ */
+export function formatMontoParaInput(n: number): string {
+  return String(n).replace('.', ',')
+}
+
+/**
  * Interpreta un texto libre (típicamente dictado por voz) y devuelve monto,
  * detalle (el texto sin el monto), categoría sugerida y tipo.
  *

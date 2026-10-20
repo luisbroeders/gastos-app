@@ -618,3 +618,28 @@ header h1 {
   border-color: rgba(109, 94, 249, 0.35);
 }
 .tarjeta-total.acumulado strong { color: #b7aeff; }
+
+/* ---------- Modal de edición ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 18, 0.7);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+.modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  margin: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+.edit-btn:active { background: rgba(109, 94, 249, 0.18); color: #b7aeff; }

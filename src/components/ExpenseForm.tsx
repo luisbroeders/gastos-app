@@ -3,7 +3,7 @@ import { Mic, Square, ArrowDownCircle, ArrowUpCircle, Send } from 'lucide-react'
 import { db } from '../db'
 import { runSync } from '../sync'
 import { DEFAULT_CATEGORIES, FORMAS_PAGO } from '../categories'
-import { parseTextoLibre, parseMontoArgentino } from '../textParser'
+import { parseTextoLibre, parseMontoArgentino, formatMontoParaInput } from '../textParser'
 import { useVoiceInput, isVoiceInputSupported } from '../useVoiceInput'
 import type { Movimiento, TipoMovimiento } from '../types'
 
@@ -19,12 +19,6 @@ function todayISODate() {
   return new Date().toISOString().slice(0, 10)
 }
 
-// Convierte un number de JS (que usa '.' como decimal) a como se escribe
-// a mano en el campo Monto (coma como decimal), para que lo que carga la
-// voz se pueda re-parsear con parseMontoArgentino sin ambigüedad.
-function formatMontoParaInput(n: number): string {
-  return String(n).replace('.', ',')
-}
 
 export function ExpenseForm({ householdId, userId, userName, categorias, onSaved }: Props) {
   const [tipo, setTipo] = useState<TipoMovimiento>('gasto')
