@@ -66,3 +66,49 @@ export interface TarjetaCierre {
   deleted: 0 | 1
   synced: 0 | 1 // solo local
 }
+
+/** Un consumo tal como figura en el resumen del banco. */
+export interface ConsumoResumen {
+  id: string // estable dentro de la revisión ("c0", "c1", ...)
+  fecha: string // YYYY-MM-DD (en cuotas, es la fecha de la compra original)
+  descripcion: string // comercio, sin la marca de cuota ni el "USD x"
+  descripcionOriginal: string
+  monto: number | null // en pesos (null si el consumo es en dólares)
+  usd: number | null // en dólares (null si es en pesos)
+  cuota: { n: number; total: number } | null // "C.02/03" -> { n: 2, total: 3 }
+  cupon: string
+  titular: string // titular/adicional al que corresponde el consumo
+}
+
+/** Impuestos, cargos e intereses del resumen (no se comparan con las compras). */
+export interface CargoResumen {
+  fecha: string
+  descripcion: string
+  monto: number
+}
+
+/**
+ * Revisión de un resumen de tarjeta: guarda lo leído del resumen y qué ítems
+ * se confirmaron a mano. El cruce con las compras de la app se recalcula en
+ * vivo (así, si corregís una compra, la revisión se actualiza sola).
+ */
+export interface RevisionTarjeta {
+  id: string
+  household_id: string
+  tarjeta: string // una de TARJETAS
+  cierre_anterior: string // YYYY-MM-DD
+  cierre_actual: string // YYYY-MM-DD
+  proximo_cierre: string | null
+  vencimiento: string | null
+  saldo_pesos: number | null
+  saldo_usd: number | null
+  consumos: ConsumoResumen[]
+  cargos: CargoResumen[]
+  confirmados: string[] // claves confirmadas a mano: "s:<idConsumo>" y "a:<idCompra>"
+  archivo: string | null // nombre del PDF original
+  created_by: string
+  created_by_nombre?: string
+  updated_at: string
+  deleted: 0 | 1
+  synced: 0 | 1 // solo local
+}

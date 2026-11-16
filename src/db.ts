@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { Movimiento, Categoria, CompraTarjeta, TarjetaCierre } from './types'
+import type { Movimiento, Categoria, CompraTarjeta, TarjetaCierre, RevisionTarjeta } from './types'
 
 // Base local (IndexedDB) que vive en el celular/navegador. Es la fuente de
 // verdad para la UI: se escribe acá primero (funciona sin conexión) y un
@@ -9,6 +9,7 @@ class GastosDB extends Dexie {
   categorias!: Table<Categoria, string>
   comprasTarjeta!: Table<CompraTarjeta, string>
   tarjetasCierres!: Table<TarjetaCierre, string>
+  revisionesTarjeta!: Table<RevisionTarjeta, string>
 
   constructor() {
     super('gastos-app-db')
@@ -30,6 +31,13 @@ class GastosDB extends Dexie {
       categorias: 'id, nombre, synced, deleted, household_id',
       comprasTarjeta: 'id, fecha, synced, deleted, household_id',
       tarjetasCierres: 'id, tarjeta, synced, deleted, household_id',
+    })
+    this.version(5).stores({
+      movimientos: 'id, fecha, synced, deleted, household_id',
+      categorias: 'id, nombre, synced, deleted, household_id',
+      comprasTarjeta: 'id, fecha, synced, deleted, household_id',
+      tarjetasCierres: 'id, tarjeta, synced, deleted, household_id',
+      revisionesTarjeta: 'id, tarjeta, cierre_actual, synced, deleted, household_id',
     })
   }
 }

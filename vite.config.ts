@@ -25,6 +25,17 @@ export default defineConfig({
         // Cache app shell for offline use. API calls to Supabase are handled
         // by our own local-first sync logic (db.ts / sync.ts), not by the SW.
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // La lectura de PDF (pdf.js + su worker, ~1,8 MB) solo se usa en "Revisión
+        // de resúmenes": no va en la instalación inicial, se descarga la primera
+        // vez que se usa y queda en caché para las siguientes.
+        globIgnores: ['**/assets/pdf-*.js', '**/assets/pdf.worker*'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/pdf[.-][^/]*\.m?js$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'pdf-lib', expiration: { maxEntries: 6 } },
+          },
+        ],
         navigateFallback: 'index.html'
       }
     })

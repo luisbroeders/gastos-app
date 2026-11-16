@@ -22,7 +22,7 @@ export function parseFechaLocal(iso: string): Date {
   return new Date(y, m - 1, d)
 }
 
-function diasEntre(desde: Date, hasta: Date): number {
+export function diasEntre(desde: Date, hasta: Date): number {
   return Math.round((hasta.getTime() - desde.getTime()) / MS_POR_DIA)
 }
 
@@ -47,4 +47,18 @@ export function numeroDeCiclo(fecha: Date, cierreAnterior: Date, cierreProximo: 
 export function calcularValorCuota(monto: number, cuotas: number, tasaAnual: number): number {
   const interes = monto * (tasaAnual / 100) * (cuotas / 12)
   return (monto + interes) / Math.max(cuotas, 1)
+}
+
+/**
+ * Número de ciclo de `fecha` respecto de un resumen real, con la convención
+ * del banco: el período va desde el día SIGUIENTE al cierre anterior hasta el
+ * día del cierre actual, inclusive. El ciclo del resumen es el 0, los
+ * anteriores son negativos y los posteriores positivos. La duración de los
+ * otros ciclos se estima con la del resumen (cierre actual - cierre anterior).
+ */
+export function numeroDeCicloResumen(fecha: Date, cierreAnterior: Date, cierreActual: Date): number | null {
+  const duracion = diasEntre(cierreAnterior, cierreActual)
+  if (duracion <= 0) return null
+  const dias = diasEntre(cierreAnterior, fecha)
+  return Math.ceil(dias / duracion) - 1
 }

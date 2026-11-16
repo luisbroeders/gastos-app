@@ -8,7 +8,7 @@ import { ExpenseForm } from './components/ExpenseForm'
 import { MovementList } from './components/MovementList'
 import { SaldoActual } from './components/SaldoActual'
 import { CategoriasAdmin } from './components/CategoriasAdmin'
-import { ComprasTarjeta } from './components/ComprasTarjeta'
+import { TarjetaSection } from './components/TarjetaSection'
 import { SyncStatus } from './components/SyncStatus'
 const IngresosVsGastosChart = lazy(() =>
   import('./components/IngresosVsGastosChart').then((m) => ({ default: m.IngresosVsGastosChart }))
@@ -164,7 +164,7 @@ export default function App() {
       )}
 
       {tab === 'tarjeta' && (
-        <ComprasTarjeta household={household} userId={profile.id} userName={profile.display_name} />
+        <TarjetaSection household={household} userId={profile.id} userName={profile.display_name} />
       )}
 
       {tab === 'dashboard' && <CategoriasAdmin householdId={household.id} />}

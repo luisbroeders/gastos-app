@@ -643,3 +643,184 @@ header h1 {
 .modal-header { display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { margin: 0; font-size: 1rem; font-weight: 800; }
 .edit-btn:active { background: rgba(109, 94, 249, 0.18); color: #b7aeff; }
+
+/* ---------- Revisión de resúmenes de tarjeta ---------- */
+.subtabs {
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+.subtabs button {
+  flex: 1;
+  padding: 9px 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.subtabs button.active { background: var(--surface-2); color: var(--text); }
+
+.revisiones { display: flex; flex-direction: column; gap: 12px; }
+.revisiones-lista { display: flex; flex-direction: column; gap: 8px; }
+.revision-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 13px 14px;
+  color: var(--text);
+}
+.revision-item-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.revision-item-titulo { font-size: 0.86rem; font-weight: 700;  }
+.revision-item-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+.rev-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.rev-badges i {
+  font-style: normal;
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.rev-badges i.si { background: rgba(47, 217, 138, 0.14); color: var(--positive); }
+.rev-badges i.no { background: rgba(255, 107, 129, 0.12); color: var(--negative); opacity: 0.85; }
+
+.nueva-revision { margin-bottom: 18px; }
+.archivo-btn {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px;
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(109, 94, 249, 0.5);
+  background: rgba(109, 94, 249, 0.08);
+  color: #b7aeff !important;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  cursor: pointer;
+}
+.rev-titulo-preview { margin: 0; font-weight: 800; font-size: 0.95rem; }
+.rev-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+.rev-preview div { display: flex; justify-content: space-between; gap: 10px; font-size: 0.8rem; }
+.rev-preview span { color: var(--text-muted); }
+.rev-aviso-caja {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(255, 190, 70, 0.1);
+  border: 1px solid rgba(255, 190, 70, 0.35);
+  color: #ffd27a;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 0.78rem;
+}
+.rev-aviso { display: flex; align-items: flex-start; gap: 5px; font-size: 0.72rem; color: #ffd27a; margin: 2px 0 0; }
+
+.revision-detalle { display: flex; flex-direction: column; gap: 10px; }
+.volver-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 2px 0;
+}
+.rev-titulo { margin: 0; font-size: 1.05rem; font-weight: 800; line-height: 1.25; }
+
+.rev-resumen-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.rev-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 11px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.rev-card strong { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.rev-card span { font-size: 0.64rem; color: var(--text-muted); font-weight: 600; line-height: 1.25; }
+.rev-card.ok strong { color: var(--positive); }
+.rev-card.warn { border-color: rgba(255, 190, 70, 0.4); }
+.rev-card.warn strong { color: #ffd27a; }
+
+.rev-totales {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
+}
+.rev-totales div { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.rev-totales span { color: var(--text-muted); }
+
+.rev-cierres { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.rev-cierres span { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+.rev-cierres p { margin: 3px 0 0; font-size: 0.82rem; }
+
+.rev-seccion { margin: 10px 0 0; font-size: 0.95rem; font-weight: 800; }
+.rev-subseccion { margin: 6px 0 0; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+.rev-todo-ok { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--positive); font-size: 0.82rem; font-weight: 600; }
+
+.rev-lista { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.rev-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.rev-item input[type='checkbox'] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--violet); }
+.rev-item-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.rev-item-titulo { font-size: 0.85rem; font-weight: 700; }
+.rev-item-titulo em { font-style: normal; font-weight: 600; font-size: 0.72rem; color: var(--text-muted); }
+.rev-item-sub { font-size: 0.72rem; color: var(--text-muted); }
+.rev-item-monto { font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.rev-item.coincidencia { border-color: rgba(47, 217, 138, 0.25); }
+.rev-item.manual { border-style: dashed; }
+.rev-check-ok { color: var(--positive); flex-shrink: 0; }
+.rev-item.solo-lectura { padding: 8px 12px; }
+
+.borrar-revision-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 107, 129, 0.35);
+  background: transparent;
+  color: var(--negative);
+  font-size: 0.8rem;
+  font-weight: 600;
+}

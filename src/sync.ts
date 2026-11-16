@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 import { db } from './db'
-import type { Movimiento, Categoria, CompraTarjeta, TarjetaCierre } from './types'
+import type { Movimiento, Categoria, CompraTarjeta, TarjetaCierre, RevisionTarjeta } from './types'
 import type { Table } from 'dexie'
 
 interface Sincronizable {
@@ -119,6 +119,8 @@ export async function runSync(householdId: string) {
     await pullRemotoGenerico<CompraTarjeta>('compras_tarjeta', db.comprasTarjeta, householdId)
     await pushPendienteGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres)
     await pullRemotoGenerico<TarjetaCierre>('tarjetas_cierres', db.tarjetasCierres, householdId)
+    await pushPendienteGenerico<RevisionTarjeta>('revisiones_tarjeta', db.revisionesTarjeta)
+    await pullRemotoGenerico<RevisionTarjeta>('revisiones_tarjeta', db.revisionesTarjeta, householdId)
     setUltimaSync(householdId)
   } catch {
     // sin conexión real o error transitorio: se reintenta en el próximo ciclo
@@ -213,6 +215,51 @@ export async function guardarTarjetaCierre(
   await db.tarjetasCierres.put(registro)
   runSync(householdId)
 }
+/**
+ * Guarda una revisión de resumen. Hay una sola por tarjeta y por resumen
+ * (mismo cierre actual): si ya existe, se reutiliza su id y se pisan sus datos
+ * (las confirmaciones manuales empiezan de cero porque cambió el contenido).
+ */
+export async function guardarRevisionTarjeta(revision: RevisionTarjeta, householdId: string) {
+  const existente = await db.revisionesTarjeta
+    .where('household_id')
+    .equals(householdId)
+    .and((r) => r.deleted === 0 && r.tarjeta === revision.tarjeta && r.cierre_actual === revision.cierre_actual)
+    .first()
+  await db.revisionesTarjeta.put({
+    ...revision,
+    id: existente?.id ?? revision.id,
+    updated_at: new Date().toISOString(),
+    deleted: 0,
+    synced: 0,
+  })
+  runSync(householdId)
+}
+
+/** Marca o desmarca un ítem como confirmado a mano dentro de una revisión (pasa de "A revisar" a "Coincidencias" y viceversa). */
+export async function confirmarEnRevision(revisionId: string, clave: string, confirmado: boolean, householdId: string) {
+  const actual = await db.revisionesTarjeta.get(revisionId)
+  if (!actual) return
+  const set = new Set(actual.confirmados)
+  if (confirmado) set.add(clave)
+  else set.delete(clave)
+  await db.revisionesTarjeta.put({
+    ...actual,
+    confirmados: [...set],
+    updated_at: new Date().toISOString(),
+    synced: 0,
+  })
+  runSync(householdId)
+}
+
+/** Borra (soft-delete) una revisión. */
+export async function borrarRevisionTarjeta(id: string, householdId: string) {
+  const actual = await db.revisionesTarjeta.get(id)
+  if (!actual) return
+  await db.revisionesTarjeta.put({ ...actual, deleted: 1, updated_at: new Date().toISOString(), synced: 0 })
+  runSync(householdId)
+}
+
 /** Arranca sincronización periódica + al reconectar. Devuelve función de limpieza. */
 export function startSyncLoop(householdId: string, intervalMs = 30_000) {
   const tick = () => runSync(householdId)
