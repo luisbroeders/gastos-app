@@ -8,6 +8,8 @@ import { parseMontoArgentino } from '../textParser'
 import { parseFechaLocal, numeroDeCiclo, calcularValorCuota } from '../cicloTarjeta'
 import { FechaSelector } from './FechaSelector'
 import { EditCompraTarjetaModal } from './EditCompraTarjetaModal'
+import { BuscadorLista } from './BuscadorLista'
+import { coincideBusqueda } from '../buscar'
 import type { CompraTarjeta, Household } from '../types'
 
 interface Props {
@@ -39,6 +41,7 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
   const [savedMsg, setSavedMsg] = useState<string | null>(null)
   const [borrando, setBorrando] = useState<string | null>(null)
   const [editando, setEditando] = useState<CompraTarjeta | null>(null)
+  const [busqueda, setBusqueda] = useState('')
 
   const compras = useLiveQuery(
     () =>
@@ -133,6 +136,12 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
   }
 
   const ordenadas = (compras ?? []).slice().sort((a, b) => b.fecha.localeCompare(a.fecha))
+
+  // La búsqueda solo filtra la lista; los acumulados usan siempre todas las compras.
+  const visibles = ordenadas.filter((c) =>
+    coincideBusqueda(busqueda, { textos: [c.descripcion, c.tarjeta, c.cuotas > 1 ? `${c.cuotas} cuotas` : null], monto: c.monto, fecha: c.fecha })
+  )
+  const buscando = busqueda.trim() !== ''
 
   // Acumulado del ciclo actual, POR TARJETA: cada tarjeta tiene su propio
   // ciclo (definido por sus dos fechas de cierre). Cada cuota de cada compra
@@ -307,7 +316,13 @@ export function ComprasTarjeta({ household, userId, userName }: Props) {
       </form>
 
       <div className="movement-list">
-        {ordenadas.map((c) => (
+        <BuscadorLista value={busqueda} onChange={setBusqueda} placeholder="Buscar por descripción, tarjeta, monto, fecha..." />
+        {buscando && (
+          <p className="buscador-resultados">
+            {visibles.length === 0 ? 'Sin resultados' : `${visibles.length} resultado${visibles.length === 1 ? '' : 's'}`}
+          </p>
+        )}
+        {visibles.map((c) => (
           <div key={c.id} className="movement-row">
             <div className="movement-icon gasto">
               <CreditCard size={16} />

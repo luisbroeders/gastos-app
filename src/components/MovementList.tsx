@@ -4,6 +4,8 @@ import { Trash2, Pencil } from 'lucide-react'
 import { db } from '../db'
 import { borrarMovimiento } from '../sync'
 import { EditMovimientoModal } from './EditMovimientoModal'
+import { BuscadorLista } from './BuscadorLista'
+import { coincideBusqueda } from '../buscar'
 import type { Household, Movimiento } from '../types'
 
 interface Props {
@@ -16,6 +18,7 @@ const money = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS
 export function MovementList({ household, categorias }: Props) {
   const [borrando, setBorrando] = useState<string | null>(null)
   const [editando, setEditando] = useState<Movimiento | null>(null)
+  const [busqueda, setBusqueda] = useState('')
 
   // useLiveQuery re-renderiza automáticamente cuando cambia IndexedDB
   // (ya sea por una carga local nueva o por datos que trajo el sync).
@@ -40,7 +43,15 @@ export function MovementList({ household, categorias }: Props) {
 
   // Agrupamos por mes solo para los totales de cada grupo (el saldo corriente
   // ahora se muestra arriba de todo, en el componente SaldoActual).
-  const ordenados = [...movimientos].sort((a, b) => {
+  const filtrados = movimientos.filter((m) =>
+    coincideBusqueda(busqueda, {
+      textos: [m.categoria, m.detalle, m.forma_pago, m.tipo],
+      monto: m.monto,
+      fecha: m.fecha,
+    })
+  )
+  const buscando = busqueda.trim() !== ''
+  const ordenados = [...filtrados].sort((a, b) => {
     if (a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha)
     return a.updated_at.localeCompare(b.updated_at)
   })
@@ -55,6 +66,12 @@ export function MovementList({ household, categorias }: Props) {
 
   return (
     <div className="movement-list">
+      <BuscadorLista value={busqueda} onChange={setBusqueda} placeholder="Buscar por detalle, categoría, monto, fecha..." />
+      {buscando && (
+        <p className="buscador-resultados">
+          {filtrados.length === 0 ? 'Sin resultados' : `${filtrados.length} resultado${filtrados.length === 1 ? '' : 's'}`}
+        </p>
+      )}
       {meses.map((mes) => {
         const items = grupos.get(mes)!.slice().reverse()
         const totalGastos = items.filter((i) => i.tipo === 'gasto').reduce((s, i) => s + i.monto, 0)
